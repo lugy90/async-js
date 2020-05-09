@@ -196,8 +196,8 @@ class MyPromise {
       }
     })
   }
+
   
-
-
+  
 }
   
