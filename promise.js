@@ -196,8 +196,23 @@ class MyPromise {
       }
     })
   }
+}
 
-  
-  
+MyPromise.prototype.done = function (onFulfilled, onRejected) {
+  console.log('done')
+  this.then(onFulfilled, onRejected)
+    .catch((reason)=> {
+      // 抛出一个全局错误
+      setTimeout(() => {
+        throw reason
+      }, 0)
+    })
+}
+
+MyPromise.prototype.finally = function(cb) {
+  return this.then(
+    value  => MyPromise.resolve(cb()).then(() => value),
+    reason => MyPromise.resolve(cb()).then(() => { throw reason })
+  )
 }
   
