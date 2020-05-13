@@ -6,11 +6,11 @@ const FULFILLED = 'FULFILLED'
 const REJECTED = 'REJECTED'
 
 
-class MyPromise {
+class Promise {
   constructor (handle) {
     // 判断handle函数与否
     if (!isFunction(handle)) {
-      throw new Error('MyPromise must accept a function as a parameter')
+      throw new Error('Promise must accept a function as a parameter')
     }
 
     // 添加状态
@@ -53,7 +53,7 @@ class MyPromise {
       /* 如果resolve的参数为Promise对象，则必须等待该Promise对象状态改变后,
         当前Promsie的状态才会改变，且状态取决于参数Promsie对象的状态
       */
-      if (val instanceof MyPromise) {
+      if (val instanceof Promise) {
         val.then(value => {
           this._value = value
           runFulfilled(value)
@@ -90,7 +90,7 @@ class MyPromise {
   then (onFulfilled, onRejected) {
     const { _value, _status } = this
     // 返回一个新的Promise对象
-    return new MyPromise((onFulfilledNext, onRejectedNext) => {
+    return new Promise((onFulfilledNext, onRejectedNext) => {
       // 封装一个成功时执行的函数
       let fulfilled = value => {
         try {
@@ -98,8 +98,8 @@ class MyPromise {
           onFulfilledNext(value)
         } else {
           let res =  onFulfilled(value);
-          if (res instanceof MyPromise) {
-            // 如果当前回调函数返回MyPromise对象，必须等待其状态改变后再执行下一个回调
+          if (res instanceof Promise) {
+            // 如果当前回调函数返回Promise对象，必须等待其状态改变后再执行下一个回调
             res.then(onFulfilledNext, onRejectedNext)
           } else {
             //否则会将返回结果直接作为参数，传入下一个then的回调函数，并立即执行下一个then的回调函数
@@ -118,8 +118,8 @@ class MyPromise {
           onRejectedNext(error)
         } else {
             let res = onRejected(error);
-            if (res instanceof MyPromise) {
-              // 如果当前回调函数返回MyPromise对象，必须等待其状态改变后在执行下一个回调
+            if (res instanceof Promise) {
+              // 如果当前回调函数返回Promise对象，必须等待其状态改变后在执行下一个回调
               res.then(onFulfilledNext, onRejectedNext)
             } else {
               //否则会将返回结果直接作为参数，传入下一个then的回调函数，并立即执行下一个then的回调函数
@@ -153,31 +153,31 @@ class MyPromise {
   }
 
   static resolve (value) {
-    // 如果参数是MyPromise实例，直接返回这个实例
-    if (value instanceof MyPromise) return value
-    return new MyPromise(resolve => resolve(value))
+    // 如果参数是Promise实例，直接返回这个实例
+    if (value instanceof Promise) return value
+    return new Promise(resolve => resolve(value))
   }
 
   static reject (value) {
-    return new MyPromise((resolve ,reject) => reject(value))
+    return new Promise((resolve ,reject) => reject(value))
   }
 
   static all (list) {
-    return new MyPromise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       /**
        * 返回值的集合
        */
       let values = []
       let count = 0
       for (let [i, p] of list.entries()) {
-        // 数组参数如果不是MyPromise实例，先调用MyPromise.resolve
+        // 数组参数如果不是Promise实例，先调用Promise.resolve
         this.resolve(p).then(res => {
           values[i] = res
           count++
-          // 所有状态都变成fulfilled时返回的MyPromise状态就变成fulfilled
+          // 所有状态都变成fulfilled时返回的Promise状态就变成fulfilled
           if (count === list.length) resolve(values)
         }, err => {
-          // 有一个被rejected时返回的MyPromise状态就变成rejected
+          // 有一个被rejected时返回的Promise状态就变成rejected
           reject(err)
         })
       }
@@ -185,9 +185,9 @@ class MyPromise {
   }
 
   static race (list) {
-    return new MyPromise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       for (let p of list) {
-        // 只要有一个实例率先改变状态，新的MyPromise的状态就跟着改变
+        // 只要有一个实例率先改变状态，新的Promise的状态就跟着改变
         this.resolve(p).then(res => {
           resolve(res)
         }, err => {
@@ -198,7 +198,7 @@ class MyPromise {
   }
 }
 
-MyPromise.prototype.done = function (onFulfilled, onRejected) {
+Promise.prototype.done = function (onFulfilled, onRejected) {
   console.log('done')
   this.then(onFulfilled, onRejected)
     .catch((reason)=> {
@@ -209,10 +209,10 @@ MyPromise.prototype.done = function (onFulfilled, onRejected) {
     })
 }
 
-MyPromise.prototype.finally = function(cb) {
+Promise.prototype.finally = function(cb) {
   return this.then(
-    value  => MyPromise.resolve(cb()).then(() => value),
-    reason => MyPromise.resolve(cb()).then(() => { throw reason })
+    value  => Promise.resolve(cb()).then(() => value),
+    reason => Promise.resolve(cb()).then(() => { throw reason })
   )
 }
   
